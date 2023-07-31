@@ -659,7 +659,7 @@ func (worker *WorkerClient) Recover(p *WorkerPool, ticket string, info *stranded
 		killparam = param[0]
 	}
 	worker.callogStranded("RECOVERING", info) // TODO: should we have this?
-	workerRecoverTimeout := worker.initiateRecover(killparam, p, priorWorkerStatus, WorkerClientRecoverParam{allowSkipOciBreak:true}) /* TODO refine, true for client-disconn & r3taf */
+	workerRecoverTimeout := worker.initiateRecover(killparam, p, priorWorkerStatus)
 	for {
 		select {
 		case <-workerRecoverTimeout:
