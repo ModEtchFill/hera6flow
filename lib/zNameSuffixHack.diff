@@ -1,0 +1,17 @@
+diff --git a/lib/coordinator.go b/lib/coordinator.go
+index 45b832e..ba4c3e7 100644
+--- a/lib/coordinator.go
++++ b/lib/coordinator.go
+@@ -274,7 +274,11 @@ func (crd *Coordinator) Run() {
+ 						logger.GetLogger().Log(logger.Debug, crd.id, "Run: worker ctrlchan abort", crd.worker.pid)
+ 					}
+ 					GetStateLog().PublishStateEvent(StateEvent{eType: ConnStateEvt, shardID: crd.worker.shardID, wType: crd.worker.Type, instID: crd.worker.instID, oldCState: Assign, newCState: Idle})
+-					go crd.worker.Recover(crd.workerpool, crd.ticket, &strandedCalInfo{raddr: crd.conn.RemoteAddr().String(), laddr: crd.conn.LocalAddr().String(), nameSuffix: "_SATURATION_RECOVERED"}, common.StrandedSaturationRecover)
++					nameSuffix := "_SATURATION_RECOVERED"
++					if msg.bindEvict {
++						nameSuffix = "_BIND_EVICT"
++					}
++					go crd.worker.Recover(crd.workerpool, crd.ticket, &strandedCalInfo{raddr: crd.conn.RemoteAddr().String(), laddr: crd.conn.LocalAddr().String(), nameSuffix: nameSuffix}, common.StrandedSaturationRecover)
+ 					crd.resetWorkerInfo()
+ 				} else {
+ 					// this should not happen, log in case it happens
