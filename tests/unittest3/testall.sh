@@ -41,45 +41,6 @@ then
 else
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME
 fi
-cat <<EOF |$ORACLE_HOME/sqlplus $username/$password@$TWO_TASK
-create or replace function cur_micros
-return number
-is
-    rv number;
-    upper number;
-begin
-    select to_number(to_char(current_timestamp,'SSFF')) into rv from dual;
-    select to_number(to_char(current_timestamp,'MI')) into upper from dual;
-    rv := rv + 1000000 * 60 * upper;
-    -- adding hh24 overflows
-    return rv;
-end;
-/
-select cur_micros() from dual;
-select cur_micros() as chkStmtSpeed from dual;
-create or replace function usleep (micros in number)
-return number
-is
-    finish number;
-    cur number;
-begin
-    cur := cur_micros();
-    finish := cur + micros;
-    while cur < finish loop
-        cur := cur_micros();
-    end loop;
-    return cur-finish+micros;
-end;
-/
-select current_timestamp from dual;
-select usleep(2111000) from dual;
-select current_timestamp from dual;
-create public synonym usleep for usleep;
---grant execute on usleep to app;
-
-create table resilience_at_load ( id number, note varchar2(333) );
-create public synonym resilience_at_load for resilience_at_load;
-EOF
 
 # make oracle worker
 pushd worker/cppworker/worker
@@ -90,40 +51,27 @@ popd
 
 
 # run test with oracle
-touch state.log hera.log
-tail -f state.log hera.log &
-#for d in state.log hera.log
-#do 
-#    touch $d
-#    tail -f $d | sed -e "s/^/$d /" &
-#done
-( rm -f zstop ; while [ ! -f zstop ] ; do tail cal.log ;  sleep 1.1 ; done ) &
-sleep 1.2
-date >> cal.log
-date >> hera.log
-sleep 1.5
-echo $RANDOM >> cal.log
-echo $RANDOM >> hera.log
-sleep 1.7
-chmod a+w cal.log state.log hera.log
-d=oracleHighLoadAdj
-pushd $GOPATH/src/github.com/paypal/hera/tests/unittest3/$d
-cp -v $GOPATH/bin/oracleworker .
-#( ./oracleworker ; echo $? tried oracleworker with failure expected )
-$GOROOT/bin/go test -c .
-ls -l
-#timeout -v 222 strace -ttfs111 -e trace=open,write,read ./$d.test -test.v | tee /dev/null
-timeout -v --kill-after=444 222 ./$d.test -test.v
-rv=$?
-if [ 0 != $rv ]
-then
-    echo failing $suite $d
-    grep ^ *.log
-fi
-touch zstop 
-ls -l
-grep ORA hera.log | head
-tail *.log
-grep WORKER hera.log | head
-echo test done $rv
-exit $rv
+overall=0
+for d in `ls $GOPATH/src/github.com/paypal/hera/tests/unittest3 | grep -vE '(testall.sh)'`
+do
+    pushd $GOPATH/src/github.com/paypal/hera/tests/unittest3/$d
+    if [ -f setup.sql ]
+    then
+        cat setup.sql |$ORACLE_HOME/sqlplus $username/$password@$TWO_TASK
+    fi
+    cp -v $GOPATH/bin/oracleworker .
+    $GOROOT/bin/go test -c .
+    ./$d.test -test.v
+    rv=$?
+    if [ 0 != $rv ]
+    then
+        echo $d failing $d
+        grep ^ *.log
+        overall=$rv
+    fi
+    tail *.log
+    echo $d test done $rv
+    grep -E '(FAIL([^O]|$)|PASS)' -A1 *.log
+    popd
+done
+exit $overall
