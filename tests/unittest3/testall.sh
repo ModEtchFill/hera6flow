@@ -61,7 +61,7 @@ do
     fi
     cp -v $GOPATH/bin/oracleworker .
     $GOROOT/bin/go test -c .
-    ./$d.test -test.v
+    ./$d.test -test.v | tee /dev/null
     rv=$?
     if [ 0 != $rv ]
     then
