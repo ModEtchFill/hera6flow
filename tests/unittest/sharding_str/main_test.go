@@ -119,7 +119,7 @@ func setupShardMap(t *testing.T) {
 
 func TestShardingStr(t *testing.T) {
 	logger.GetLogger().Log(logger.Debug, "TestShardingStr function, creating tables and setting up shard map")
-	setupShardMap(t)
+	setupShardMap()
 	logger.GetLogger().Log(logger.Debug, "TestShardingStr begin +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
 

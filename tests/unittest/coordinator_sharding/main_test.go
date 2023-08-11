@@ -106,7 +106,7 @@ func cleanup(ctx context.Context, conn *sql.Conn) error {
 
 func TestShardingBasic(t *testing.T) {
 	logger.GetLogger().Log(logger.Debug, "TestShardingBasic setup")
-	setupShardMap(t)
+	setupShardMap()
 	logger.GetLogger().Log(logger.Debug, "TestShardingBasic begin +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
 	hostname, _ := os.Hostname()
