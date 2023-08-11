@@ -44,7 +44,7 @@ func cfg() (map[string]string, map[string]string, testutil.WorkerType) {
 	return appcfg, opscfg, testutil.MySQLWorker
 }
 
-func setupShardMap(t *testing.T) {
+func setupShardMap() {
         twoTask := os.Getenv("TWO_TASK")
         if !strings.HasPrefix(twoTask, "tcp") {
                 // not mysql

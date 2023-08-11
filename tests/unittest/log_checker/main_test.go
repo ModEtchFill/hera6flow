@@ -197,7 +197,7 @@ func TestCalClientSessionCorrIdInvalid(t *testing.T) {
 	logger.GetLogger().Log(logger.Debug, "TestCalClientSessionCorrIdInvalid done +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 }
 
-func clientSessionDurLogScan(){
+func clientSessionDurLogScan() (error){
 	file, err := os.Open("cal.log")
 	defer file.Close()
 	if err != nil {
